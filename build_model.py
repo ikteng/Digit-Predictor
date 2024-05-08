@@ -43,22 +43,29 @@ model.add(BatchNormalization())
 model.add(Conv2D(filters=32, kernel_size=(3,3), padding='Same', activation='relu'))
 model.add(BatchNormalization())
 model.add(MaxPool2D(pool_size=(2,2)))
-model.add(Dropout(0.25))
+model.add(Dropout(0.3))  # Increased dropout rate
 
 model.add(Conv2D(filters=64, kernel_size=(3,3), padding='Same', activation='relu'))
 model.add(BatchNormalization())
 model.add(Conv2D(filters=64, kernel_size=(3,3), padding='Same', activation='relu'))
 model.add(BatchNormalization())
 model.add(MaxPool2D(pool_size=(2,2)))
-model.add(Dropout(0.25))
+model.add(Dropout(0.3))  # Increased dropout rate
+
+model.add(Conv2D(filters=128, kernel_size=(3,3), padding='Same', activation='relu'))  # New convolutional layer
+model.add(BatchNormalization())
+model.add(Conv2D(filters=128, kernel_size=(3,3), padding='Same', activation='relu'))  # New convolutional layer
+model.add(BatchNormalization())
+model.add(MaxPool2D(pool_size=(2,2)))
+model.add(Dropout(0.3))  # Increased dropout rate
 
 model.add(Flatten())
-model.add(Dense(256, activation='relu', kernel_regularizer=l2(0.0001)))  # Add L2 regularization
+model.add(Dense(256, activation='relu', kernel_regularizer=l2(0.0001)))
 model.add(Dropout(0.5))
 model.add(Dense(10, activation='softmax'))
 
 # Compile the model
-optimizer = Adam(lr=0.001)
+optimizer = Adam(lr=0.0005)  # Decreased learning rate
 model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
 # Data augmentation
@@ -86,22 +93,9 @@ early_stopping = EarlyStopping(monitor='val_loss', patience=5, verbose=1, restor
 epochs = 30
 batch_size = 128
 history = model.fit(datagen.flow(X_train, Y_train, batch_size=batch_size),
-                              epochs=epochs, validation_data=(X_val, Y_val),
-                              verbose=2, steps_per_epoch=X_train.shape[0] // batch_size,
-                              callbacks=[learning_rate_reduction, early_stopping])
+                    epochs=epochs, validation_data=(X_val, Y_val),
+                    verbose=2, steps_per_epoch=X_train.shape[0] // batch_size,
+                    callbacks=[learning_rate_reduction, early_stopping])
 
 # Save the trained model
 model.save("Digit Predictor\digit_recognition_model.h5")
-
-# Load the saved model
-model = load_model("Digit Predictor\digit_recognition_model.h5")
-
-# Plot training and validation curves
-fig, ax = plt.subplots(2, 1)
-ax[0].plot(history.history['loss'], color='b', label="Training loss")
-ax[0].plot(history.history['val_loss'], color='r', label="Validation loss", axes=ax[0])
-legend = ax[0].legend(loc='best', shadow=True)
-
-ax[1].plot(history.history['accuracy'], color='b', label="Training accuracy")
-ax[1].plot(history.history['val_accuracy'], color='r', label="Validation accuracy")
-legend = ax[1].legend(loc='best', shadow=True)
